@@ -236,7 +236,7 @@ AUTHOR = "Copyright (C) 2019 Christian Rickert"
 SEPARBOLD = 79*'='
 SEPARNORM = 79*'-'
 SOFTWARE = "ParamAP"
-VERSION = "version 1.2,"  # (2019-02-11)
+VERSION = "version 1.3b,"  # (2019-08-08)
 WORKDIR = SOFTWARE  # working directory for parameterization
 print('{0:^79}'.format(SEPARBOLD) + os.linesep)
 GREETER = '{0:<{w0}}{1:<{w1}}{2:<{w2}}'.format(SOFTWARE, VERSION, AUTHOR, w0=len(SOFTWARE)+1, w1=len(VERSION)+1, w2=len(AUTHOR)+1)
@@ -698,6 +698,13 @@ for ATFFILE in ATFFILES:  # iterate through files
                     thr_y = avgf_y[thr_i]
                     thr = float(thr_y)
 
+                    # determine "Late AP duration"
+                    lapd_l = thr
+                    lapd_i = functools.reduce(np.intersect1d, (np.argwhere(avgf_y > lapd_l), np.argwhere(avg_x >= avgfmax_x), np.argwhere(avg_x <= mdp2_x)))
+                    lapd_x = (0.5*(avg_x[lapd_i[-1]]+avg_x[lapd_i[-1]+1]))  # equal to or smaller than lapd_l
+                    lapd_y = (0.5*(avgf_y[lapd_i[-1]]+avgf_y[lapd_i[-1]+1]))
+                    lapd = float(mdp2_x - lapd_x)
+
                     # determine "Early diastolic duration: Time from MDP1 to end of linear fit for DDR" (EDD) (ms)
                     edd_i, edd_x, edd_y, edd_m, edd_n, edd_r = getbestlinearfit(avg_x, avgf_y, mdp1_x, thr_x, 10, 50, 1, 20)  # fit EDD within the threshold level determined earlier
                     edd = float(edd_x[-1]-mdp1_x)
@@ -721,7 +728,8 @@ for ATFFILE in ATFFILES:  # iterate through files
                     sys.stdout.flush()
                     mpp.plot([mdp1_x, thr_x], [mdp1_y, mdp1_y], 'k-.')  # DD (black dashed/dotted line)
                     mpp.plot([thr_x, mdp2_x], [mdp2_y, mdp2_y], 'k')  # APD (black line)
-                    mpp.plot([apd30_x[0], apd30_x[1]], [apd30_y[1], apd30_y[1]], 'k')  # APD30 (black line)
+                    # mpp.plot([apd30_x[0], apd30_x[1]], [apd30_y[1], apd30_y[1]], 'k')  # APD30 (black line)
+                    mpp.plot([lapd_x, mdp2_x], [lapd_y, lapd_y], 'r-.')  # LAPD (black line)
                     mpp.plot([apd50_x[0], apd50_x[1]], [apd50_y[1], apd50_y[1]], 'k')  # APD50 (black line)
                     mpp.plot([apd90_x[0], apd90_x[1]], [apd90_y[1], apd90_y[1]], 'k')  # APD90 (black line)
                     mpp.plot([mdp1_x, mdp1_x], [mdp1_y, 0.0], 'k:')  # MDP1 indicator (black dotted line)
@@ -737,7 +745,8 @@ for ATFFILE in ATFFILES:  # iterate through files
                     mpp.plot(avg_x[edd_i], avgf_y[edd_i], 'g')  # best linear fit segment for DDR (green line)
                     mpp.plot(avg_x, (edd_m*avg_x + edd_n), 'k--')  # DDR (black dashed line)
                     mpp.plot([edd_x[-1]], [edd_y[-1]], 'ko')  # EDD-LDD separator (black dot)
-                    mpp.plot([apd30_x[1]], [apd30_y[1]], 'ko')  # APD30 (black dots)
+                    # mpp.plot([apd30_x[1]], [apd30_y[1]], 'ko')  # APD30 (black dots)
+                    mpp.plot(lapd_x, lapd_y, 'ro')  # LAPD (black dot)
                     mpp.plot([apd50_x[1]], [apd50_y[1]], 'ko')  # APD50 (black dots)
                     mpp.plot(apd90_x[1], apd90_y[1], 'ko')  # APD90 (black dots)
                     mpp.plot(thr_x, avgf_y[thr_i], 'ro')  # THR (red dot)
@@ -755,7 +764,8 @@ for ATFFILE in ATFFILES:  # iterate through files
                     mpp.figtext(0.12, 0.79, "{0:<s} {1:<.4G}".format("EDD (ms):", edd), ha='left', va='center')
                     mpp.figtext(0.12, 0.76, "{0:<s} {1:<.4G}".format("LDD (ms):", ldd), ha='left', va='center')
                     mpp.figtext(0.12, 0.73, "{0:<s} {1:<.4G}".format("APD (ms):", apd), ha='left', va='center')
-                    mpp.figtext(0.12, 0.70, "{0:<s} {1:<.4G}".format("APD30 (ms):", apd30), ha='left', va='center')
+                    # mpp.figtext(0.12, 0.70, "{0:<s} {1:<.4G}".format("APD30 (ms):", apd30), ha='left', va='center')
+                    mpp.figtext(0.12, 0.70, "{0:<s} {1:<.4G}".format("LAPD (ms):", lapd), ha='left', va='center')
                     mpp.figtext(0.12, 0.67, "{0:<s} {1:<.4G}".format("APD50 (ms):", apd50), ha='left', va='center')
                     mpp.figtext(0.12, 0.64, "{0:<s} {1:<.4G}".format("APD90 (ms):", apd90), ha='left', va='center')
                     mpp.figtext(0.12, 0.61, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("MDP1 (ms, mV)", mdp1_x, ",", mdp1), ha='left', va='center')
@@ -763,7 +773,7 @@ for ATFFILE in ATFFILES:  # iterate through files
                     mpp.figtext(0.12, 0.55, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("THR (ms, mV):", thr_x, ",", thr), ha='left', va='center')
                     mpp.figtext(0.12, 0.52, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("PP (ms, mV):", 0.0, ",", pp), ha='left', va='center')
                     mpp.figtext(0.12, 0.49, "{0:<s} {1:<.4G}".format("APA (mV):", apa), ha='left', va='center')
-                    mpp.figtext(0.12, 0.46, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("DDR (ms, mV/ms):", edd_x[0], ",", ddr), ha='left', va='center')
+                    mpp.figtext(0.12, 0.46, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("DDR (ms, mV/ms):", edd_x[-1], ",", ddr), ha='left', va='center')
                     mpp.figtext(0.12, 0.43, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("MUV (ms, mV/ms):", avgfgfmax_x, ",", muv), ha='left', va='center')
                     mpp.figtext(0.12, 0.40, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("TRR (ms, mV/ms):", avgfgfmin_x[1], ",", trr), ha='left', va='center')
                     mpp.figtext(0.12, 0.37, "{0:<s} {1:<.4G}{2:<s} {3:<.4G}".format("MRR (ms, mV/ms):", avgfgfmin_x[0], ",", mrr), ha='left', va='center')
@@ -807,11 +817,11 @@ for ATFFILE in ATFFILES:  # iterate through files
                     with open(sum_file, 'a') as targetfile:  # append file
                         if newfile:  # write header
                             targetfile.write(
-                                "{0:s}\t{1:s}\t{2:s}\t{3:s}\t{4:s}\t{5:s}\t{6:s}\t{7:s}\t{8:s}\t{9:s}\t{10:s}\t{11:s}\t{12:s}\t{13:s}\t{14:s}\t{15:s}\t{16:s}\t{17:s}\t{18:s}\t{19:s}\t{20:s}\t{21:s}\t{22:s}\t{23:s}\t{24:s}\t{25:s}\t{26:s}\t{27:s}\t{28:s}\t{29:s}".format(
-                                    "File ( )", "Start (ms)", "Stop (ms)", "APs (#)", "FR (AP/min)", "CL (ms)", "DD (ms)", "EDD (ms)", "LDD (ms)", "APD (ms)", "APD30 (ms)", "APD50 (ms)", "APD90 (ms)", "MDP1 (mV)", "MDP2 (mV)", "THR (mV)", "PP (mV)", "APA (mV)", "DDR (mV/ms)", "MUV (mV/ms)", "TRR (mV/ms)", "MRR (mV/ms)", "MDP1 (ms)", "MDP2 (ms)", "THR (ms)", "PP (ms)", "DDR (ms)", "MUV (ms)", "TRR (ms)", "MRR (ms)") + "\n")
+                                "{0:s}\t{1:s}\t{2:s}\t{3:s}\t{4:s}\t{5:s}\t{6:s}\t{7:s}\t{8:s}\t{9:s}\t{10:s}\t{11:s}\t{12:s}\t{13:s}\t{14:s}\t{15:s}\t{16:s}\t{17:s}\t{18:s}\t{19:s}\t{20:s}\t{21:s}\t{22:s}\t{23:s}\t{24:s}\t{25:s}\t{26:s}\t{27:s}\t{28:s}\t{29:s}\t{30:s}".format(
+                                    "File ( )", "Start (ms)", "Stop (ms)", "APs (#)", "FR (AP/min)", "CL (ms)", "DD (ms)", "EDD (ms)", "LDD (ms)", "APD (ms)", "LAPD (ms)", "APD50 (ms)", "APD90 (ms)", "MDP1 (mV)", "MDP2 (mV)", "THR (mV)", "PP (mV)", "APA (mV)", "DDR (mV/ms)", "MUV (mV/ms)", "TRR (mV/ms)", "MRR (mV/ms)", "MDP1 (ms)", "DDR (ms)", "THR (ms)", "MUV (ms)", "PP (ms)", "TRR (ms)", "MRR (ms)", "LAPD (ms)", "MDP2 (ms)") + "\n")
                         targetfile.write(
-                            "{0:s}\t{1:4G}\t{2:4G}\t{3:4G}\t{4:4G}\t{5:4G}\t{6:4G}\t{7:4G}\t{8:4G}\t{9:4G}\t{10:4G}\t{11:4G}\t{12:4G}\t{13:4G}\t{14:4G}\t{15:4G}\t{16:4G}\t{17:4G}\t{18:4G}\t{19:4G}\t{20:4G}\t{21:4G}\t{22:4G}\t{23:4G}\t{24:4G}\t{25:4G}\t{26:4G}\t{27:4G}\t{28:4G}\t{29:4G}".format(
-                                name, tmp_start, tmp_stop, rawfmax_y.size, frate, cl, dd, edd, ldd, apd, apd30, apd50, apd90, mdp1, mdp2, thr, pp, apa, ddr, muv, trr, mrr, mdp1_x, mdp2_x, thr_x, 0.0, edd_x[0], avgfgfmax_x, avgfgfmin_x[1], avgfgfmin_x[0]) + "\n")
+                            "{0:s}\t{1:4G}\t{2:4G}\t{3:4G}\t{4:4G}\t{5:4G}\t{6:4G}\t{7:4G}\t{8:4G}\t{9:4G}\t{10:4G}\t{11:4G}\t{12:4G}\t{13:4G}\t{14:4G}\t{15:4G}\t{16:4G}\t{17:4G}\t{18:4G}\t{19:4G}\t{20:4G}\t{21:4G}\t{22:4G}\t{23:4G}\t{24:4G}\t{25:4G}\t{26:4G}\t{27:4G}\t{28:4G}\t{29:4G}\t{30:4G}".format(
+                                name, tmp_start, tmp_stop, rawfmax_y.size, frate, cl, dd, edd, ldd, apd, lapd, apd50, apd90, mdp1, mdp2, thr, pp, apa, ddr, muv, trr, mrr, mdp1_x, edd_x[-1], thr_x, avgfgfmax_x, 0.0, avgfgfmin_x[1], avgfgfmin_x[0], lapd_x, mdp2_x) + "\n")
                         targetfile.flush()
                     sys.stdout.write(8*"\t" + "   [OK]\n")
                     sys.stdout.flush()
