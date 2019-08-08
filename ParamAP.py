@@ -236,7 +236,7 @@ AUTHOR = "Copyright (C) 2019 Christian Rickert"
 SEPARBOLD = 79*'='
 SEPARNORM = 79*'-'
 SOFTWARE = "ParamAP"
-VERSION = "version 1.3b,"  # (2019-08-08)
+VERSION = "version 1.2,"  # (2019-08-08)
 WORKDIR = SOFTWARE  # working directory for parameterization
 print('{0:^79}'.format(SEPARBOLD) + os.linesep)
 GREETER = '{0:<{w0}}{1:<{w1}}{2:<{w2}}'.format(SOFTWARE, VERSION, AUTHOR, w0=len(SOFTWARE)+1, w1=len(VERSION)+1, w2=len(AUTHOR)+1)
@@ -736,8 +736,6 @@ for ATFFILE in ATFFILES:  # iterate through files
                     mpp.plot([mdp2_x, mdp2_x], [mdp2_y, 0.0], 'k:')  # MDP2 indicator (black dotted line)
                     mpp.plot([avgfgfmax_x, avgfgfmax_x], [mdp2_y, avgf_y[avgfgfmax_i]], 'k:')  # MUV indicator (black dotted line)
                     mpp.plot([avgfgfmin_x[0], avgfgfmin_x[0]], [mdp2_y, avgf_y[avgfgfmin_i[0]]], 'k:')  # MRR indicator (black dotted line)
-                    if trr:
-                        mpp.plot([avgfgfmin_x[1], avgfgfmin_x[1]], [mdp2_y, avgf_y[avgfgfmin_i[1]]], 'k:')  # TRR indicator (black dotted line)
                     mpp.plot([edd_x[-1], edd_x[-1]], [mdp2_y, 0.0], 'k:')  # EDD/LDD separator (black dashed line)
                     mpp.plot([thr_x, thr_x], [thr_y, 0.0], 'k:')  # DD/APD upper separator (black dotted line)
                     mpp.plot([thr_x, thr_x], [mdp2_y, thr_y], 'k:')  # DD/APD lower separator (black dotted line)
@@ -753,8 +751,8 @@ for ATFFILE in ATFFILES:  # iterate through files
                     mpp.plot(avgfgfmax_x, avgf_y[avgfgfmax_i], 'wo')  # MUV (white dot)
                     mpp.plot(avgfgfmin_x[0], avgf_y[avgfgfmin_i[0]], 'wo')  # MRR (white dot)
                     if not math.isnan(trr):
-                        mpp.plot(avgfgfmin_x[1], avgf_y[avgfgfmin_i[1]], 'wo')  # TRR (dot)
-                        mpp.plot([avgfgfmin_x[1], avgfgfmin_x[1]], [avgfgfmin_y[1], avgfgfmax_y], 'k:')  # TRR indicator (black dotted line)
+                        mpp.plot([avgfgfmin_x[1], avgfgfmin_x[1]], [mdp2_y, avgf_y[avgfgfmin_i[1]]], 'k:')  # TRR indicator (black dotted line)
+                        mpp.plot(avgfgfmin_x[1], avgf_y[avgfgfmin_i[1]], 'wo')  # TRR (white dot)
                     mpp.plot(avgfmax_x, pp_y, 'bo')  # PP (blue dot)
                     mpp.plot(avgfmin_x, avgfmin_y, 'go')  # MDP1, MDP2 (green dots)
                     mpp.figtext(0.12, 0.91, "{0:<s} {1:<.4G}".format("APs (#):", rawfmax_y.size), ha='left', va='center')
@@ -781,6 +779,8 @@ for ATFFILE in ATFFILES:  # iterate through files
                     mpp_setup(title="", xlabel='Time (ms)', ylabel='(mV/ms)')
                     mpp.plot([avg_x[0], avg_x[-1]], [0.0, 0.0], '0.85')  # x axis
                     mpp.plot([avgfgfmin_x[0], avgfgfmin_x[0]], [avgfgfmin_y[0], avgfgfmax_y], 'k:')  # MRR indicator (black dotted line)
+                    if not math.isnan(trr):
+                        mpp.plot([avgfgfmin_x[1], avgfgfmin_x[1]], [avgfgfmin_y[1], avgfgfmax_y], 'k:')  # TRR indicator (black dotted line)
                     mpp.plot([thr_x, thr_x], [avgfgf_y[thr_i], avgfgfmax_y], 'k:')  # THR indicator (black dotted line)
                     mpp.plot(avg_x, avgfg_y, 'c', avg_x, avgfgf_y, 'm')  # derivative and filtered derivative
                     mpp.plot(avg_x[da_i], avgfgf_y[da_i], 'g')  # best linear fit segment for THR (green line)
